@@ -1,5 +1,5 @@
 const db = require('../database/db');
-const uuidv4 = require('uuidv4');
+const { v4: uuidv4 } = require('uuid');
 
 db.serialize(() => {
   db.run(
@@ -21,11 +21,38 @@ const insertPostIntoTable = (post) => {
     const id = uuidv4();
     const query = `INSERT INTO blog_posts (id, title, content, datePosted)
         VALUES (?, ?, ?, ?)`;
-    db.run(query, [id, post.title, post.content, post.dateCreated]);
-    err = err ? reject(err) : resolve(id);
+    db.run(query, [id, post.title, post.content, post.datePosted], (err) => {
+      err ? reject(err) : resolve(id);
+    });
+  });
+};
+
+const updatePostIntoTable = (post) => {
+  return new Promise((resolve, reject) => {
+    const query = `UPDATE blog_posts 
+                   SET title = ?, content = ?, datePosted = ?
+                   WHERE id = ?`;
+    db.run(
+      query,
+      [post.title, post.content, post.datePosted, post.id],
+      (err) => {
+        err ? reject(err) : resolve(post);
+      }
+    );
+  });
+};
+
+const deletePostFromTable = (post) => {
+  return new Promise((resolve, reject) => {
+    const query = `DELETE FROM blog_posts WHERE id = ?`;
+    db.run(query, [post.id], (err) => {
+      err ? reject(err) : resolve(post);
+    });
   });
 };
 
 module.exports = {
   insertPostIntoTable,
+  updatePostIntoTable,
+  deletePostFromTable,
 };

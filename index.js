@@ -3,7 +3,9 @@ const db = require('./src/database/db')
 const express = require('express');
 const cors = require('cors');
 const app = express();
+
 const userRoutes = require('./src/routes/usersRoutes')
+const postRoutes = require('./src/routes/postRoutes')
 
 const secretKey = 'gokstadakademiet'; // MÅ IKKE ENDRES
 const port = 3000; // MÅ IKKE ENDRES
@@ -18,6 +20,7 @@ app.use(express.json()); // MÅ IKKE ENDRES
 app.use(express.urlencoded({ extended: true })); // MÅ IKKE ENDRES
 
 app.use('/', userRoutes)
+app.use('/', postRoutes)
 
 // Login for bruker
 app.post('/login', (req, res) => {});
