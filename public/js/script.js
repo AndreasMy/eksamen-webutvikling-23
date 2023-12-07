@@ -36,7 +36,7 @@ function registerUser() {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password, email, dateCreated: new Date().toISOString() }),
+        body: JSON.stringify({ username: username, password: password, email: email, dateCreated: new Date().toISOString() }),
     })
         .then(response => response.json())
         .then(data => console.log(data)) // CHANGELOG: Oppdatert denne fra .then(data)

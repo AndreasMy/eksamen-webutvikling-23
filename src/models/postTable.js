@@ -4,9 +4,9 @@ const uuidv4 = require('uuidv4');
 db.serialize(() => {
   db.run(
     `CREATE TABLE IF NOT EXISTS blog_posts (
-        id TEXT PRIMARY KEY
-        title TEXT
-        content TEXT
+        id TEXT PRIMARY KEY,
+        title TEXT,
+        content TEXT,
         datePosted TEXT
     )`,
     (err) =>

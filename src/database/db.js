@@ -4,7 +4,7 @@ const path = require('path');
 const dbPath = path.join(__dirname, 'database.db');
 
 // Opprett databasefilen
-let db = new sqlite3.Database(dbPath, (error) => {
+const db = new sqlite3.Database(dbPath, (error) => {
   if (error) {
     console.error('Database connection error', error.message);
     throw error;

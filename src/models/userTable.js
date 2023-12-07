@@ -4,10 +4,10 @@ const { v4: uuidv4 } = require('uuid');
 db.serialize(() => {
   db.run(
     `CREATE TABLE IF NOT EXISTS registered_users (
-            id TEXT PRIMARY KEY 
-            username TEXT
-            password TEXT
-            email TEXT
+            id TEXT PRIMARY KEY, 
+            username TEXT,
+            password TEXT,
+            email TEXT,
             dateCreated TEXT
         )`,
     (err) =>
