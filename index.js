@@ -1,8 +1,13 @@
 // importer requirements
+const express = require('express');
+const cors = require('cors')
+
 
 const app = express();
 const port = 3000; // MÅ IKKE ENDRES
 const secretKey = 'gokstadakademiet'; // MÅ IKKE ENDRES
+
+//const path = require('path')
 
 const corsOptions = {
     origin: ['http://localhost:5500', 'http://127.0.0.1:5500'],
@@ -13,10 +18,7 @@ app.use(cors(corsOptions)); // MÅ IKKE ENDRES
 app.use(express.json()); // MÅ IKKE ENDRES
 app.use(express.urlencoded({ extended: true })); // MÅ IKKE ENDRES
 
-// Opprett databasefilen
-let db = new sqlite3.Database('./database.db', (error) => {
 
-})
 
 // Lag en bruker
 app.post('/register', (req, res) => {
@@ -60,5 +62,5 @@ app.delete('/posts/:id', (req, res) => {
 
 // Start serveren
 app.listen(port, () => {
-
+console.log(`Server => http://localhost:${port}`)
 })
