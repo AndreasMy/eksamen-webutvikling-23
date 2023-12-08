@@ -8,18 +8,18 @@ const {
 const router = express.Router();
 
 // Hent alle poster inkludert username fra users
-router.get('/blogposts/posts', (req, res) => {
+router.get('/posts', (req, res) => {
   handleDBQuery(req, res, 'SELECT * FROM blog_posts', []);
 });
 
 // Hent en post på ID
-router.get('/blogposts/posts/:id', (req, res) => {
+router.get('/posts/:id', (req, res) => {
   const id = req.params.id;
   handleDBQuery(req, res, 'SELECT * FROM blog_posts WHERE id = ?', [id], true);
 });
 
 // Opprett en post
-router.post('/blogposts/posts', async (req, res) => {
+router.post('/posts', async (req, res) => {
   const data = req.body;
   console.log(data);
   return insertPostIntoTable(data)
@@ -34,7 +34,7 @@ router.post('/blogposts/posts', async (req, res) => {
 });
 
 // Oppdater post
-router.put('/blogposts/posts/:id', async (req, res) => {
+router.put('/posts/:id', async (req, res) => {
   const data = req.body;
   console.log(data);
   return updatePostIntoTable(data)
@@ -51,7 +51,7 @@ router.put('/blogposts/posts/:id', async (req, res) => {
 });
 
 // Slett en post
-router.delete('/blogposts/posts/:id', async (req, res) => {
+router.delete('/posts/:id', async (req, res) => {
   const data = req.params;
   console.log(data);
   return deletePostFromTable(data)

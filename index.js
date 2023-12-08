@@ -1,11 +1,13 @@
 // importer requirements
-const db = require('./src/database/db')
+const db = require('./src/database/db');
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const path = require('path');
 
-const userRoutes = require('./src/routes/usersRoutes')
-const postRoutes = require('./src/routes/postRoutes')
+const userRoutes = require('./src/routes/usersRoutes');
+const postRoutes = require('./src/routes/postRoutes');
+const loginRoutes = require('./src/routes/loginRoutes');
 
 const secretKey = 'gokstadakademiet'; // MÅ IKKE ENDRES
 const port = 3000; // MÅ IKKE ENDRES
@@ -19,32 +21,13 @@ app.use(cors(corsOptions)); // MÅ IKKE ENDRES
 app.use(express.json()); // MÅ IKKE ENDRES
 app.use(express.urlencoded({ extended: true })); // MÅ IKKE ENDRES
 
-app.use('/', userRoutes)
-app.use('/', postRoutes)
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Login for bruker
-app.post('/login', (req, res) => {});
-
-// Logout for bruker
-app.post('/logout', (req, res) => {});
-
-// Hent alle poster inkludert username fra users
-app.get('/posts', (req, res) => {});
-
-// Hent en post på ID
-app.get('/posts/:id', (req, res) => {});
-
-// Opprett en post
-app.post('/posts', (req, res) => {});
-
-// Oppdater post
-app.put('/posts/:id', (req, res) => {});
-
-// Slett en post
-app.delete('/posts/:id', (req, res) => {});
+app.use('/', userRoutes);
+app.use('/', postRoutes);
+app.use('/', loginRoutes);
 
 // Start serveren
 app.listen(port, () => {
   console.log(`Server => http://localhost:${port}`);
 });
-

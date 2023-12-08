@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const { insertUserIntoDB } = require('../models/userTable');
 const { handleDBQuery } = require('./helpers/routerFns');
 
-router.post('/users/register', (req, res) => {
+router.post('/register', (req, res) => {
   const userData = req.body;
   console.log(userData);
   const saltRounds = 10;
@@ -20,7 +20,7 @@ router.post('/users/register', (req, res) => {
     .catch((err) => res.status(500).send('Error creating user: ' + err));
 });
 
-router.get('/users/viewUsers', (req, res) => {
+router.get('/viewUsers', (req, res) => {
   handleDBQuery(req, res, 'SELECT * FROM registered_users', []);
 });
 
