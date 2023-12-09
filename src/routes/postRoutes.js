@@ -6,27 +6,18 @@ const {
   deletePostFromTable,
 } = require('../models/postTable');
 const router = express.Router();
+const {authenticateToken} = require('./helpers/auth')
 
-const jwt = require('jsonwebtoken');
-const secretKey = 'gokstadakademiet';
+router.get('/posts', (req, res) => {
+  const id = req.body.id;
+  handleDBQuery(req, res, 'SELECT * FROM blog_posts', [id]);
+});
 
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (token == null) {
-    return res.sendStatus(401);
-  }
-
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) {
-      return res.sendStatus(403);
-    }
-
-    req.user = user;
-    next();
-  });
-}
+// Hent en post på ID
+router.get('/posts/:id', (req, res) => {
+  const id = req.params.id;
+  handleDBQuery(req, res, 'SELECT * FROM blog_posts WHERE id = ?', [id], true);
+});
 
 router.post('/posts', authenticateToken, async (req, res) => {
   let data = req.body;
@@ -45,9 +36,11 @@ router.post('/posts', authenticateToken, async (req, res) => {
     });
 });
 
-router.put('/posts/:id', async (req, res) => {
+router.put('/posts/:id',authenticateToken, async (req, res) => {
+  const id = req.params.id;
   const data = req.body;
-  console.log(data);
+  data.id = id;
+
   return updatePostIntoTable(data)
     .then((data) => {
       res
@@ -61,19 +54,8 @@ router.put('/posts/:id', async (req, res) => {
     });
 });
 
-router.get('/posts', (req, res) => {
-  const id = req.body.id;
-  handleDBQuery(req, res, 'SELECT * FROM blog_posts', [id]);
-});
-
-// Hent en post på ID
-router.get('/posts/:id', (req, res) => {
-  const id = req.params.id;
-  handleDBQuery(req, res, 'SELECT * FROM blog_posts WHERE id = ?', [id], true);
-});
-
 // Slett en post
-router.delete('/posts/:id', async (req, res) => {
+router.delete('/posts/:id', authenticateToken, async (req, res) => {
   const id = req.params.id;
 
   return deletePostFromTable(id)

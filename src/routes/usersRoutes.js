@@ -3,8 +3,9 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const { insertUserIntoDB } = require('../models/userTable');
 const { handleDBQuery } = require('./helpers/routerFns');
+const { authenticateToken } = require('./helpers/auth');
 
-router.post('/register', (req, res) => {
+router.post('/register', authenticateToken, async (req, res) => {
   const userData = req.body;
   console.log(userData);
   const saltRounds = 10;
