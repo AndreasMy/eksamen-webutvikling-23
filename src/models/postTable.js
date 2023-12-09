@@ -4,7 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 db.serialize(() => {
   db.run(
     `CREATE TABLE IF NOT EXISTS blog_posts (
-        id TEXT PRIMARY KEY,
+        id INTEGER PRIMARY KEY,
+        username TEXT,
         title TEXT,
         content TEXT,
         datePosted TEXT
@@ -18,12 +19,16 @@ db.serialize(() => {
 
 const insertPostIntoTable = (post) => {
   return new Promise((resolve, reject) => {
-    const id = uuidv4();
-    const query = `INSERT INTO blog_posts (id, title, content, datePosted)
+    // const id = uuidv4();
+    const query = `INSERT INTO blog_posts (username, title, content, datePosted)
         VALUES (?, ?, ?, ?)`;
-    db.run(query, [id, post.title, post.content, post.datePosted], (err) => {
-      err ? reject(err) : resolve(id);
-    });
+    db.run(
+      query,
+      [post.username, post.title, post.content, post.datePosted],
+      (err) => {
+        err ? reject(err) : resolve(this.lastId);
+      }
+    );
   });
 };
 
@@ -42,11 +47,11 @@ const updatePostIntoTable = (post) => {
   });
 };
 
-const deletePostFromTable = (post) => {
+const deletePostFromTable = (id) => {
   return new Promise((resolve, reject) => {
     const query = `DELETE FROM blog_posts WHERE id = ?`;
-    db.run(query, [post.id], (err) => {
-      err ? reject(err) : resolve(post);
+    db.run(query, [id], (err) => {
+      err ? reject(err) : resolve(id);
     });
   });
 };

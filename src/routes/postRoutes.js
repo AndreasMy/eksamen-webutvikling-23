@@ -7,33 +7,44 @@ const {
 } = require('../models/postTable');
 const router = express.Router();
 
-// Hent alle poster inkludert username fra users
-router.get('/posts', (req, res) => {
-  handleDBQuery(req, res, 'SELECT * FROM blog_posts', []);
-});
+const jwt = require('jsonwebtoken');
+const secretKey = 'gokstadakademiet';
 
-// Hent en post på ID
-router.get('/posts/:id', (req, res) => {
-  const id = req.params.id;
-  handleDBQuery(req, res, 'SELECT * FROM blog_posts WHERE id = ?', [id], true);
-});
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-// Opprett en post
-router.post('/posts', async (req, res) => {
-  const data = req.body;
+  if (token == null) {
+    return res.sendStatus(401);
+  }
+
+  jwt.verify(token, secretKey, (err, user) => {
+    if (err) {
+      return res.sendStatus(403);
+    }
+
+    req.user = user;
+    next();
+  });
+}
+
+router.post('/posts', authenticateToken, async (req, res) => {
+  let data = req.body;
+  data.username = req.user.username;
   console.log(data);
+
   return insertPostIntoTable(data)
     .then((id) => {
       res.status(200).json({ message: 'Post created successfully', id: id });
     })
     .catch((error) => {
+      console.error('Error creating post', error);
       res
         .status(500)
         .json({ message: 'Error creating post', error: error.message });
     });
 });
 
-// Oppdater post
 router.put('/posts/:id', async (req, res) => {
   const data = req.body;
   console.log(data);
@@ -50,17 +61,30 @@ router.put('/posts/:id', async (req, res) => {
     });
 });
 
+router.get('/posts', (req, res) => {
+  const id = req.body.id;
+  handleDBQuery(req, res, 'SELECT * FROM blog_posts', [id]);
+});
+
+// Hent en post på ID
+router.get('/posts/:id', (req, res) => {
+  const id = req.params.id;
+  handleDBQuery(req, res, 'SELECT * FROM blog_posts WHERE id = ?', [id], true);
+});
+
 // Slett en post
 router.delete('/posts/:id', async (req, res) => {
-  const data = req.params;
-  console.log(data);
-  return deletePostFromTable(data)
-    .then((data) => {
-      res
-        .status(200)
-        .json({ message: 'Post deleted successfully', data: data });
+  const id = req.params.id;
+
+  return deletePostFromTable(id)
+    .then((id) => {
+      res.status(200).json({
+        message: 'Post deleted successfully',
+        id: id,
+      });
     })
     .catch((error) => {
+      console.error('Error deleting post', error);
       res
         .status(500)
         .json({ message: 'Error deleting post', error: error.message });
