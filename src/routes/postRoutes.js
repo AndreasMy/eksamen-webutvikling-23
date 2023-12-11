@@ -1,28 +1,44 @@
 const express = require('express');
+const router = express.Router();
+
 const { handleDBQuery } = require('./helpers/routerFns');
+const { authenticateToken } = require('./helpers/auth');
 const {
   insertPostIntoTable,
   updatePostIntoTable,
   deletePostFromTable,
 } = require('../models/postTable');
-const router = express.Router();
-const {authenticateToken} = require('./helpers/auth')
 
-router.get('/posts', (req, res) => {
-  const id = req.body.id;
-  handleDBQuery(req, res, 'SELECT * FROM blog_posts', [id]);
+// Get all posts
+router.get('/posts', async (req, res) => {
+  try {
+    const posts = await handleDBQuery('SELECT * FROM blog_posts');
+
+    res.json(posts);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
-// Hent en post på ID
-router.get('/posts/:id', (req, res) => {
-  const id = req.params.id;
-  handleDBQuery(req, res, 'SELECT * FROM blog_posts WHERE id = ?', [id], true);
+// Get a post by ID
+router.get('/posts/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const post = await handleDBQuery(
+      'SELECT * FROM blog_posts WHERE id = ?',
+      [id],
+      true
+    );
+
+    res.json(post);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
 router.post('/posts', authenticateToken, async (req, res) => {
   let data = req.body;
   data.username = req.user.username;
-  console.log(data);
 
   return insertPostIntoTable(data)
     .then((id) => {
@@ -36,7 +52,8 @@ router.post('/posts', authenticateToken, async (req, res) => {
     });
 });
 
-router.put('/posts/:id',authenticateToken, async (req, res) => {
+// Update a post
+router.put('/posts/:id', authenticateToken, async (req, res) => {
   const id = req.params.id;
   const data = req.body;
   data.id = id;
@@ -54,7 +71,7 @@ router.put('/posts/:id',authenticateToken, async (req, res) => {
     });
 });
 
-// Slett en post
+// Delete a post
 router.delete('/posts/:id', authenticateToken, async (req, res) => {
   const id = req.params.id;
 

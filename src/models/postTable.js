@@ -1,5 +1,4 @@
 const db = require('../database/db');
-const { v4: uuidv4 } = require('uuid');
 
 db.serialize(() => {
   db.run(
@@ -19,7 +18,6 @@ db.serialize(() => {
 
 const insertPostIntoTable = (post) => {
   return new Promise((resolve, reject) => {
-    // const id = uuidv4();
     const query = `INSERT INTO blog_posts (username, title, content, datePosted)
         VALUES (?, ?, ?, ?)`;
     db.run(

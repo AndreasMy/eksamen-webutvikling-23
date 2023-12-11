@@ -1,23 +1,25 @@
 const db = require('../../database/db');
 
-const handleDBQuery = (req, res, sql, params, singleItem = false) => {
-  const queryCallback = (err, data) => {
-    if (err) {
-      res.status(500).send('Error reading from database');
-      return;
-    }
-    if (singleItem && !data) {
-      res.status(404).send('Item not found');
-      return;
-    }
-    res.json(data);
-  };
+const handleDBQuery = (sql, params, singleItem = false) => {
+  return new Promise((resolve, reject) => {
+    const queryCallback = (err, data) => {
+      if (err) {
+        reject('Error reading from database');
+        return;
+      }
+      if (singleItem && !data) {
+        reject('Item not found');
+        return;
+      }
+      resolve(data);
+    };
 
-  if (singleItem) {
-    db.get(sql, params, queryCallback);
-  } else {
-    db.all(sql, params, queryCallback);
-  }
+    if (singleItem) {
+      db.get(sql, params, queryCallback);
+    } else {
+      db.all(sql, params, queryCallback);
+    }
+  });
 };
 
 const executeDbCommand = (
@@ -49,16 +51,4 @@ const executeDbCommand = (
   };
 };
 
-/*
-  // Usage
-  router.delete('/deleteUsers', async (req, res) => {
-    executeDbCommand(
-      req, 
-      res, 
-      'DELETE FROM registered_users', 
-      [], 
-      'All users deleted successfully'
-    );
-  });
- */
 module.exports = { handleDBQuery, executeDbCommand };
