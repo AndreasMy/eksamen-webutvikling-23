@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const { handleDBQuery } = require('../helpers/routerFns');
 const {
   bcryptComparePassword,
   signJwtToken,
   setCookie,
-} = require('./helpers/auth');
-const { handleDBQuery } = require('./helpers/routerFns');
+} = require('../helpers/auth');
+const { sendErrorResponse, handleSuccess } = require('../helpers/errorHandler');
 
 router.use(express.json());
 
-// Login for bruker
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -20,30 +20,21 @@ router.post('/login', async (req, res) => {
       [username],
       true
     );
-
     if (!user || user.length === 0) {
-      res
-        .status(400)
-        .json({ authenticated: false, message: 'Invalid credentials' });
-      return;
+      return sendErrorResponse(res, 401, 'Invalid credentials');
     }
 
     const matchedPassword = await bcryptComparePassword(password, user);
     if (!matchedPassword) {
-      return res
-        .status(400)
-        .json({ authenticated: false, message: 'Invalid credentials' });
+      return sendErrorResponse(res, 401, 'Invalid credentials');
     }
 
     const token = signJwtToken(user);
     setCookie(res, token);
-    
-    res.status(200).json({
-      message: 'Innlogging vellykket!',
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Error validating password');
+
+    handleSuccess(res, 'Innlogging vellykket!', null);
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -51,6 +42,6 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
   res.clearCookie('isAuth');
   res.json({ success: true, message: 'Logged out successfully' });
-});
+}); // Error message?
 
 module.exports = router;

@@ -1,8 +1,9 @@
 const express = require('express');
-const { insertUserIntoDB } = require('../../models/userTable');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
+
+const { insertUserIntoDB } = require('../models/userTable');
 
 const app = express()
 const secretKey = 'gokstadakademiet';
@@ -10,6 +11,12 @@ const secretKey = 'gokstadakademiet';
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const verifyPostAuthor = () => {
+  // Henter bruker via ID fra database
+  // Matcher med innlogged bruker
+  // Hvis match, next()
+}
 
 // Middleware for gatekeeping admin related CRUD operations
 const authenticateToken = (req, res, next) => {

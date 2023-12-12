@@ -1,32 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const { handleDBQuery } = require('./helpers/routerFns');
-const { bcryptHashPassword } = require('./helpers/auth');
+
+const { handleDBQuery } = require('../helpers/routerFns');
+const { bcryptHashPassword } = require('../helpers/auth');
+const { handleSuccess } = require('../helpers/errorHandler');
 
 router.post('/register', async (req, res) => {
   try {
     const userData = req.body;
     const userID = await bcryptHashPassword(userData);
 
-    res.status(200).send({ id: userID });
+    handleSuccess(res, 'Registered new user', { id: userID });
   } catch (error) {
-    console.error(error); //TypeError: bcryptHashPassword is not a function
-    res.status(500).send('Error creating user: ' + error);
+    console.error(error);
+    next(error);
   }
 });
 
 router.get('/viewUsers', async (req, res) => {
   try {
-    const users = await handleDBQuery(
-      req,
-      res,
-      'SELECT * FROM registered_users',
-      []
-    );
+    const users = await handleDBQuery('SELECT * FROM registered_users', []);
 
     res.json(users);
   } catch (error) {
-    res.status(500).send(error);
+    console.error(error);
+    next(error);
   }
 });
 
