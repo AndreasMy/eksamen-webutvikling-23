@@ -11,7 +11,7 @@ const { sendErrorResponse, handleSuccess } = require('../helpers/errorHandler');
 
 router.use(express.json());
 
-router.post('/login', setUser, async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 

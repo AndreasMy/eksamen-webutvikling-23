@@ -67,8 +67,8 @@ router.put('/posts/:id', authenticateToken, verifyPostAuthor, async (req, res, n
 // Delete a post
 router.delete('/posts/:id', authenticateToken, verifyPostAuthor, async (req, res, next) => {
   try {
-    const data = { id: req.params.id, username: req.user.username };
-    const dataToDelete = await deletePostFromTable(id.id);
+    const id = req.params.id;
+    const dataToDelete = await deletePostFromTable(id);
     return handleSuccess(res, 'Post deleted successfully', {
       id: dataToDelete,
     });

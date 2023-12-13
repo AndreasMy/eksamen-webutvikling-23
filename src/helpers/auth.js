@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 
 const { insertUserIntoDB } = require('../models/userTable');
 const { sendErrorResponse } = require('./errorHandler');
+const { handleDBQuery } = require('./routerFns');
 
 const app = express();
 const secretKey = 'gokstadakademiet';
@@ -13,26 +14,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const setUser = (req, res, next) => {
-  const { username } = req.body;
-  req.user = { username };
-  next();
-};
-
 const verifyPostAuthor = async (req, res, next) => {
   try {
-    const user = req.user.username;
-    console.log(user);
-    const isMatch = user === req.body.username;
+    const currentUser = req.user.username;
+    const getPostResult = await handleDBQuery(
+      'SELECT * FROM blog_posts WHERE id = ?',
+      [req.params.id],
+      true
+    );
 
-    if (!isMatch) {
+    if (!getPostResult) {
+      return sendErrorResponse(res, 404, 'Post not found');
+    }
+
+    const postAuthor = getPostResult.username;
+    if (currentUser !== postAuthor) {
       return sendErrorResponse(
         res,
         401,
         'You are not authorized to change this entry'
       );
     }
-
     next();
   } catch (error) {
     next(error);
@@ -45,12 +47,20 @@ const authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (token == null) {
-    return res.sendStatus(401);
+    return sendErrorResponse(
+      res,
+      401,
+      'You must be logged in to perform this operation.'
+    );
   }
 
   jwt.verify(token, secretKey, (err, user) => {
     if (err) {
-      return res.sendStatus(403);
+      return sendErrorResponse(
+        res,
+        401,
+        'You must be logged in to perform this operation.'
+      );
     }
 
     req.user = user;
@@ -101,7 +111,6 @@ const bcryptHashPassword = async (data) => {
 };
 
 module.exports = {
-  setUser,
   verifyPostAuthor,
   signJwtToken,
   setCookie,
