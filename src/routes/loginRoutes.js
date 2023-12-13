@@ -5,12 +5,13 @@ const {
   bcryptComparePassword,
   signJwtToken,
   setCookie,
+  setUser,
 } = require('../helpers/auth');
 const { sendErrorResponse, handleSuccess } = require('../helpers/errorHandler');
 
 router.use(express.json());
 
-router.post('/login', async (req, res) => {
+router.post('/login', setUser, async (req, res) => {
   try {
     const { username, password } = req.body;
 

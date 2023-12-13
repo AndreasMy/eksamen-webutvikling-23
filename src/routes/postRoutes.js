@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { handleDBQuery } = require('../helpers/routerFns');
-const { authenticateToken } = require('../helpers/auth');
+const { authenticateToken, verifyPostAuthor } = require('../helpers/auth');
 const {
   insertPostIntoTable,
   updatePostIntoTable,
@@ -47,9 +47,13 @@ router.post('/posts', authenticateToken, async (req, res, next) => {
 });
 
 // Update a post
-router.put('/posts/:id', authenticateToken, async (req, res, next) => {
+router.put('/posts/:id', authenticateToken, verifyPostAuthor, async (req, res, next) => {
   try {
-    const data = { ...req.body, id: req.params.id };
+    const data = {
+      ...req.body,
+      id: req.params.id,
+      username: req.user.username,
+    };
     const updatedData = await updatePostIntoTable(data);
     return handleSuccess(res, 'Post updated successfully', {
       data: updatedData,
@@ -61,10 +65,10 @@ router.put('/posts/:id', authenticateToken, async (req, res, next) => {
 });
 
 // Delete a post
-router.delete('/posts/:id', authenticateToken, async (req, res, next) => {
+router.delete('/posts/:id', authenticateToken, verifyPostAuthor, async (req, res, next) => {
   try {
-    const id = req.params.id;
-    const dataToDelete = await deletePostFromTable(id);
+    const data = { id: req.params.id, username: req.user.username };
+    const dataToDelete = await deletePostFromTable(id.id);
     return handleSuccess(res, 'Post deleted successfully', {
       id: dataToDelete,
     });

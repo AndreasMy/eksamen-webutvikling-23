@@ -4,19 +4,40 @@ const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 
 const { insertUserIntoDB } = require('../models/userTable');
+const { sendErrorResponse } = require('./errorHandler');
 
-const app = express()
+const app = express();
 const secretKey = 'gokstadakademiet';
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const verifyPostAuthor = () => {
-  // Henter bruker via ID fra database
-  // Matcher med innlogged bruker
-  // Hvis match, next()
-}
+const setUser = (req, res, next) => {
+  const { username } = req.body;
+  req.user = { username };
+  next();
+};
+
+const verifyPostAuthor = async (req, res, next) => {
+  try {
+    const user = req.user.username;
+    console.log(user);
+    const isMatch = user === req.body.username;
+
+    if (!isMatch) {
+      return sendErrorResponse(
+        res,
+        401,
+        'You are not authorized to change this entry'
+      );
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Middleware for gatekeeping admin related CRUD operations
 const authenticateToken = (req, res, next) => {
@@ -80,6 +101,8 @@ const bcryptHashPassword = async (data) => {
 };
 
 module.exports = {
+  setUser,
+  verifyPostAuthor,
   signJwtToken,
   setCookie,
   authenticateToken,
