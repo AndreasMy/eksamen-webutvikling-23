@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require('express');
+
 const cors = require('cors');
 const app = express();
 const path = require('path');
@@ -8,7 +10,7 @@ const postRoutes = require('./src/routes/postRoutes');
 const loginRoutes = require('./src/routes/loginRoutes');
 const { errorHandler } = require('./src/helpers/errorHandler');
 
-const secretKey = 'gokstadakademiet'; // MÅ IKKE ENDRES
+const secretKey = process.env.SECRET_KEY; // MÅ IKKE ENDRES
 const port = 3000; // MÅ IKKE ENDRES
 
 const corsOptions = {
@@ -30,5 +32,5 @@ app.use(errorHandler);
 
 // Start serveren
 app.listen(port, () => {
-  console.log(`Server => http://localhost:${port}`);
+  console.log(`Server => http://localhost:${port}, web page => http://localhost:5500`);
 });

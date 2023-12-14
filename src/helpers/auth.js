@@ -8,7 +8,7 @@ const { sendErrorResponse } = require('./errorHandler');
 const { handleDBQuery } = require('./routerFns');
 
 const app = express();
-const secretKey = 'gokstadakademiet';
+const secretKey = process.env.SECRET_KEY; 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -1,53 +1,115 @@
-# Prosjektdokumentasjon
+# Project Documentation
 
-## Innholdsfortegnelse
+## Table of contents
 
-- [Introduksjon](#introduksjon)
-- [Installasjon](#installasjon)
-- [Prosess og utvikling](#prosess-og-utvikling)
-- [Database](#database)
-- [Faglig Refleksjon](#faglig-refleksjon)
+- [1. Introduction](#Introduction)
+- [2. Installation](#Installation)
+- [3. Process and Development](#process-and-development)
+- [4. Database](#database)
+- [5. Academic Reflection](#academic-reflection)
 
-## Introduksjon
+## 1. Introduction
 
-_Kort introduksjon av prosjektet og dens formål._
+### 1.1. Brief
 
-## Installasjon
+This is my submission for a school assignment, where I was tasked to build a CRUD backend for a simple blog webpage.
 
-_Beskriv hvordan man installerer og starter prosjektet_
+### 1.2. Note on folder structure
 
-### Klone prosjektet
+The assignment was initially provided with a single page template, ready with predefined endpoints. Opting for a modular approach, I restructured the project to enhance its maintainabilit and scalability. This structure not only facilitates ease of development but also allowed me to learn practices such as centralized error handling and the use of generic helper functions for database interactions.
+
+### 1.3. Built with
+
+    - nodeJS
+    - Express
+    - sqLite
+    - bCrypt
+    - cors
+    - cookie-parser
+    - jsonwebtoken
+
+## 2 Installation
+
+### Cloning the Project
 
 ```bash
-git clone ........
+git clone https://github.com/AndreasMy/eksamen-webutvikling-23.git
 ```
 
-### Installere prosjektet
+### Installing the Project
 
 ```bash
-npm install .......
+npm install
 ```
 
-### Kjøre prosjektet
+### Running the Project
 
 ```bash
-npm ......
+npm run start
 ```
 
-## Prosess og utvikling
+## 3 Process and Development
 
-_Beskriv de viktigste punktene i prosjektet, hvilke funksjoner gjør hva..._
+_Describe the key points of the project_
 
-## Database
+### 3.1. Module structure
 
-_Beskrivelse av databasen, hvilke felter kreves for at applikasjonen skal virke_
+The project is modularized into the follwing folders:
 
-## Faglig refleksjon
+| Folder       | Files                                | Description                                                                                                                          |
+| ------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Routes**   | loginRoutes, postRoutes, usersRoutes | Contains all the endpoint routes, handling various API requests.                                                                     |
+| **Models**   | postTable, userTable                 | Handles database serialization and database operations.                                                                              |
+| **Database** | db, database.db                      | Manages the SQLite database. Creates a new database if not present.                                                                  |
+| **Helpers**  | auth, errorHandler, routerFns        | Includes helper functions and middlewares for authentication, centralized error handling, and functions that reduce code repetition. |
 
-### Evaluering av eget arbeid
+### 3.2. Endpoint design
 
-_Selvrefleksjon om prosjektets styrker og svakheter._
+| Endpoint   | HTTP Method | Description                           | Used in        |
+| ---------- | ----------- | ------------------------------------- | -------------- |
+| /posts     | GET         | Retrieves all blog posts.             | postRoutes.js  |
+| /posts/:id | GET         | Retrieves a specific blog post by ID. | postRoutes.js  |
+| /posts     | POST        | Creates a new blog post.              | postRoutes.js  |
+| /posts/:id | PUT         | Updates an existing blog post by ID.  | postRoutes.js  |
+| /posts/:id | DELETE      | Deletes a blog post by ID.            | postRoutes.js  |
+| /users     | POST        | Registers a new user.                 | userRoutes.js  |
+| /login     | POST        | Authenticates a user.                 | loginRoutes.js |
+| /logout    | POST        | Logs out a user.                      | loginRoutes.js |
 
-### Veiledning og Justering
+### 3.3. Helper functions
 
-_Refleksjon over hvordan arbeidet kunne blitt forbedret med veiledning._
+| Function           | Description                                                | Used In           |
+| ------------------ | ---------------------------------------------------------- | ----------------- |
+| bcryptHashPassword | Hashes user passwords for secure storage.                  | User registration |
+| authenticateToken  | Middleware for token verification and user authentication. | Protected routes  |
+| errorHandler       | Centralized error handling across the application.         | Global middleware |
+| handleDBQuery      | Generic function for database querying.                    | Models            |
+
+### 3.4. Database interaction
+
+| Operation     | Description                       | Implementation Details               |
+| ------------- | --------------------------------- | ------------------------------------ |
+| Create Post   | Adds a new post to the database.  | SQL INSERT operation in postTable.js |
+| Update Post   | Modifies an existing post.        | SQL UPDATE operation in postTable.js |
+| Delete Post   | Removes a post from the database. | SQL DELETE operation in postTable.js |
+| Register User | Adds a new user to the database.  | SQL INSERT operation in userTable.js |
+
+### 3.5. Error handling
+
+| Method            | Description                                             | Scope             |
+| ----------------- | ------------------------------------------------------- | ----------------- |
+| errorHandler      | Middleware for catching and formatting error responses. | Global middleware |
+| sendErrorResponse | Utility for sending consistent error responses.         | Used in routes    |
+| handleSuccess     | Utility for sending consistent OK responses.            | Used in routes    |
+
+### 3.6. Security Considerations
+
+## 4 Academic Reflection
+
+### Evaluation of Own Work
+
+_Self-reflection on the strengths and weaknesses of the project._
+
+### Guidance and Adjustment
+
+_Reflection on how the work could have been improved with guidance._

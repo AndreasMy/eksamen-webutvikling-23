@@ -8,25 +8,23 @@ const {
   setUser,
 } = require('../helpers/auth');
 const { sendErrorResponse, handleSuccess } = require('../helpers/errorHandler');
-
 router.use(express.json());
 
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    // Get user from database
     const user = await handleDBQuery(
       `SELECT * FROM registered_users WHERE username = ?`,
       [username],
       true
     );
-    if (!user || user.length === 0) {
-      return sendErrorResponse(res, 401, 'Invalid credentials');
-    }
+    
+    const userNotFound = !user || user.length === 0;
+    const matchedPassword = userNotFound
+      ? false
+      : await bcryptComparePassword(password, user);
 
-    const matchedPassword = await bcryptComparePassword(password, user);
-    if (!matchedPassword) {
+    if (userNotFound || !matchedPassword) {
       return sendErrorResponse(res, 401, 'Invalid credentials');
     }
 
