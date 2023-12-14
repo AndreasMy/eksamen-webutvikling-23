@@ -4,7 +4,7 @@ db.serialize(() => {
   db.run(
     `CREATE TABLE IF NOT EXISTS blog_posts (
         id INTEGER PRIMARY KEY,
-        username TEXT,
+        userId TEXT,
         title TEXT,
         content TEXT,
         datePosted TEXT
@@ -18,11 +18,11 @@ db.serialize(() => {
 
 const insertPostIntoTable = (post) => {
   return new Promise((resolve, reject) => {
-    const query = `INSERT INTO blog_posts (username, title, content, datePosted)
+    const query = `INSERT INTO blog_posts (userId, title, content, datePosted)
         VALUES (?, ?, ?, ?)`;
     db.run(
       query,
-      [post.username, post.title, post.content, post.datePosted],
+      [post.userId, post.title, post.content, post.datePosted],
       (err) => {
         err ? reject(err) : resolve(this.lastId);
       }

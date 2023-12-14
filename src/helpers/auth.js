@@ -8,7 +8,7 @@ const { sendErrorResponse } = require('./errorHandler');
 const { handleDBQuery } = require('./routerFns');
 
 const app = express();
-const secretKey = process.env.SECRET_KEY; 
+const secretKey = process.env.SECRET_KEY;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -16,7 +16,8 @@ app.use(cookieParser());
 
 const verifyPostAuthor = async (req, res, next) => {
   try {
-    const currentUser = req.user.username;
+    const currentUser = req.user.id;
+    console.log(req.user);
     const getPostResult = await handleDBQuery(
       'SELECT * FROM blog_posts WHERE id = ?',
       [req.params.id],
@@ -27,7 +28,8 @@ const verifyPostAuthor = async (req, res, next) => {
       return sendErrorResponse(res, 404, 'Post not found');
     }
 
-    const postAuthor = getPostResult.username;
+    const postAuthor = getPostResult.userId;
+    console.log(currentUser, postAuthor);
     if (currentUser !== postAuthor) {
       return sendErrorResponse(
         res,

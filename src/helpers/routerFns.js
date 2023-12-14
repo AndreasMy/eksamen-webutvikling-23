@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require("../database/db");
+const db = require('../database/db');
 
 const handleDBQuery = (sql, params, singleItem = false) => {
   return new Promise((resolve, reject) => {
@@ -23,4 +23,23 @@ const handleDBQuery = (sql, params, singleItem = false) => {
   });
 };
 
-module.exports = { handleDBQuery };
+const getUsernamesByUserId = async (next) => {
+  try {
+    users = await handleDBQuery('SELECT * FROM registered_users');
+    const usernameMap = {};
+    
+    users.forEach((user) => {
+      usernameMap[user.id] = user.username;
+    });
+
+    return usernameMap;
+  } catch (error) {
+    console.error('Error fetching username:', error);
+    next(error); // Re-throw the error so it can be handled by the caller
+  }
+};
+
+module.exports = {
+  handleDBQuery,
+  getUsernamesByUserId,
+};

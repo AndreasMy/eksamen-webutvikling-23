@@ -104,7 +104,7 @@ Database interactions are handled using SQL queries, providing a robust and effi
 
 Various helper functions and middleware are used to streamline the application:
 
-| Function           | Description                                                | Used In           |
+| Function           | Description                                                | Scope/Used in           |
 | ------------------ | ---------------------------------------------------------- | ----------------- |
 | bcryptHashPassword | Hashes user passwords for secure storage.                  | User registration |
 | authenticateToken  | Middleware for token verification and user authentication. | Protected routes  |
