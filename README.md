@@ -61,12 +61,12 @@ _Describe the key points of the project_
 The project adopts a modular architecture, dividing the codebase into logical sections for ease of maintenance and scalability:
 The project is modularized into the follwing folders:
 
-| Folder   | Contents                                      | Description                                                                                                              |
-| -------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Routes   | loginRoutes.js, postRoutes.js, usersRoutes.js | Handles endpoint routing for API requests, including user authentication and blog post management.                       |
-| Models   | postTable.js, userTable.js                    | Manages data models and database operations, such as queries for posts and user data.                                    |
-| Database | db.js, database.db                            | Contains the SQLite database setup and initializations. Responsible for creating a new database if absent.               |
-| Helpers  | auth.js, errorHandler.js, routerFns.js        | Comprises helper functions and middleware for tasks like authentication, error handling, and database query abstraction. |
+| Folder   | Description                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Routes   | Handles endpoint routing for API requests, including user authentication and blog post management.                       |
+| Models   | Manages data models and database operations, such as queries for posts and user data.                                    |
+| Database | Contains the SQLite database setup and initializations. Responsible for creating a new database if absent.               |
+| Helpers  | Comprises helper functions and middleware for tasks like authentication, error handling, and database query abstraction. |
 
 ---
 
@@ -74,6 +74,7 @@ This modular approach allows for clear separation of concerns, making the codeba
 
 Say something abut express Router and how endpoint paths could have been improved if we were allowed to work with the frontend code.
 
+---
 ### 3.2. Endpoint design
 
 The API endpoints are designed following RESTful principles. These endpoints provide a comprehensive interface for CRUD operations (Create, Read, Update, Delete) that interact with the frontend.
@@ -89,30 +90,21 @@ The API endpoints are designed following RESTful principles. These endpoints pro
 | /login     | POST        | Authenticates a user.                 | loginRoutes.js |
 | /logout    | POST        | Logs out a user.                      | loginRoutes.js |
 
-
-
 **Route handler patterns**
 
 My goal was to make sure each endpoint handler followed a consistent, declarative pattern. I did my best to achieve this by using utility functions and middleware to handle repetitive tasks.
 
 All endpoint handlers are written in async and uses the try/catch codeblock to catch and handle errors. Exception errors are caught and formatted by a global error handling middleware <= link. This ensures concise and readable error handling across the codebase.
 
-
 **Example route handler:**
 
 ```javascript
 router.post('/posts', authenticateToken, async (req, res, next) => {
   try {
-    const { title, content, datePosted } = req.body;
-    const data = {
-      userId: req.user.id,
-      title,
-      content,
-      dateCreated: datePosted,
-    };
-    await insertPostIntoTable(data);
+    const data = { ...req.body, userId: req.user.id };
+    const updatedID = await insertPostIntoTable(data);
 
-    return handleSuccess(res, 'Post created successfully'); 
+    return handleSuccess(res, 'Post created successfully', { id: updatedID });
   } catch (error) {
     console.error('Error creating post', error);
     next(error);
@@ -131,10 +123,8 @@ Database interactions are handled using SQL queries, providing a robust and effi
 | Delete Post   | Removes a post from the database. | SQL DELETE operation in postTable.js |
 | Register User | Adds a new user to the database.  | SQL INSERT operation in userTable.js |
 
+**Note on using numeric id vs uuid**
 
-
-
-**Note on table property naming**
 **Note on hard delete vs soft delete**
 
 ### 3.4. Helper functions

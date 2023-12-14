@@ -15,18 +15,13 @@ router.get('/posts', async (req, res, next) => {
   try {
     let posts = await handleDBQuery('SELECT * FROM blog_posts');
     const usernames = await getAllUserNames();
-    console.log('Output from db', posts);
 
     // Assign username to each post
-    const updatedPosts = posts.map(({ dateCreated, ...post }) => ({
-      ...post,
-      username: usernames[post.userId] || 'Unknown user',
-      datePosted: dateCreated, // Only include 'datePosted' in the response
-    }));
+    posts.forEach((post) => {
+      post.username = usernames[post.userId] || 'Unknown user';
+    });
 
-    console.log('Output to frontend: ', updatedPosts);
-
-    res.json(updatedPosts);
+    res.json(posts);
   } catch (error) {
     console.error('Error fetching posts', error);
     next(error);
@@ -51,18 +46,11 @@ router.get('/posts/:id', async (req, res, next) => {
 
 router.post('/posts', authenticateToken, async (req, res, next) => {
   try {
-    const { title, content, datePosted } = req.body;
-    const data = {
+    const data = { ...req.body, userId: req.user.id };
+    const updatedID = await insertPostIntoTable(data);
+    console.log('What is the value here? ', updatedID) // undefined
 
-      userId: req.user.id,
-      title,
-      content,
-      dateCreated: datePosted,
-    };
-    const newPostId = await insertPostIntoTable(data);
-    console.log('new post id:', newPostId);
-
-    return handleSuccess(res, 'Post created successfully', { id: newPostId });
+    return handleSuccess(res, 'Post created successfully', { id: updatedID }); 
   } catch (error) {
     console.error('Error creating post', error);
     next(error);
@@ -76,17 +64,12 @@ router.put(
   verifyPostAuthor,
   async (req, res, next) => {
     try {
-      const { title, content, datePosted } = req.body;
       const data = {
+        ...req.body,
         id: req.params.id,
-        userId: req.user.id,
-        title,
-        content,
-        dateCreated: datePosted,
+        username: req.user.username,
       };
       const updatedData = await updatePostIntoTable(data);
-
-      console.log('updated data: ', updatedData); // displays the updated data
       return handleSuccess(res, 'Post updated successfully', {
         data: updatedData,
       });

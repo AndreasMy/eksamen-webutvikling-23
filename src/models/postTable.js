@@ -7,7 +7,7 @@ db.serialize(() => {
         userId TEXT,
         title TEXT,
         content TEXT,
-        dateCreated TEXT
+        datePosted TEXT
     )`,
     function (err) {
       err
@@ -19,11 +19,11 @@ db.serialize(() => {
 
 const insertPostIntoTable = (post) => {
   return new Promise((resolve, reject) => {
-    const query = `INSERT INTO blog_posts (userId, title, content, dateCreated)
+    const query = `INSERT INTO blog_posts (userId, title, content, datePosted)
         VALUES (?, ?, ?, ?)`;
     db.run(
       query,
-      [post.userId, post.title, post.content, post.dateCreated],
+      [post.userId, post.title, post.content, post.datePosted],
       function (err) {
         if (err) {
           reject(err);
@@ -38,11 +38,11 @@ const insertPostIntoTable = (post) => {
 const updatePostIntoTable = (post) => {
   return new Promise((resolve, reject) => {
     const query = `UPDATE blog_posts 
-                   SET title = ?, content = ?, dateCreated = ?
+                   SET title = ?, content = ?, datePosted = ?
                    WHERE id = ?`;
     db.run(
       query,
-      [post.title, post.content, post.dateCreated, post.id],
+      [post.title, post.content, post.datePosted, post.id],
       function (err) {
         err ? reject(err) : resolve(post);
       }
