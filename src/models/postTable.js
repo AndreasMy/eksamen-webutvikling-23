@@ -7,23 +7,24 @@ db.serialize(() => {
         userId TEXT,
         title TEXT,
         content TEXT,
-        datePosted TEXT
+        dateCreated TEXT
     )`,
-    (err) =>
+    function (err) {
       err
         ? console.error(err.message)
-        : console.log('Table created or already exists')
+        : console.log('Table created or already exists');
+    }
   );
 });
 
 const insertPostIntoTable = (post) => {
   return new Promise((resolve, reject) => {
-    const query = `INSERT INTO blog_posts (userId, title, content, datePosted)
+    const query = `INSERT INTO blog_posts (userId, title, content, dateCreated)
         VALUES (?, ?, ?, ?)`;
     db.run(
       query,
-      [post.userId, post.title, post.content, post.datePosted],
-      (err) => {
+      [post.userId, post.title, post.content, post.dateCreated],
+      function (err) {
         err ? reject(err) : resolve(this.lastId);
       }
     );
@@ -33,12 +34,12 @@ const insertPostIntoTable = (post) => {
 const updatePostIntoTable = (post) => {
   return new Promise((resolve, reject) => {
     const query = `UPDATE blog_posts 
-                   SET title = ?, content = ?, datePosted = ?
+                   SET title = ?, content = ?, dateCreated = ?
                    WHERE id = ?`;
     db.run(
       query,
-      [post.title, post.content, post.datePosted, post.id],
-      (err) => {
+      [post.title, post.content, post.dateCreated, post.id],
+      function (err) {
         err ? reject(err) : resolve(post);
       }
     );
@@ -48,7 +49,7 @@ const updatePostIntoTable = (post) => {
 const deletePostFromTable = (id) => {
   return new Promise((resolve, reject) => {
     const query = `DELETE FROM blog_posts WHERE id = ?`;
-    db.run(query, [id], (err) => {
+    db.run(query, [id], function (err) {
       err ? reject(err) : resolve(id);
     });
   });

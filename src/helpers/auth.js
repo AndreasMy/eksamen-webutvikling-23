@@ -17,7 +17,6 @@ app.use(cookieParser());
 const verifyPostAuthor = async (req, res, next) => {
   try {
     const currentUser = req.user.id;
-    console.log(req.user);
     const getPostResult = await handleDBQuery(
       'SELECT * FROM blog_posts WHERE id = ?',
       [req.params.id],
@@ -29,7 +28,6 @@ const verifyPostAuthor = async (req, res, next) => {
     }
 
     const postAuthor = getPostResult.userId;
-    console.log(currentUser, postAuthor);
     if (currentUser !== postAuthor) {
       return sendErrorResponse(
         res,

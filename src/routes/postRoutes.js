@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { handleDBQuery, getUsernamesByUserId } = require('../helpers/routerFns');
+const { handleDBQuery, getAllUserNames } = require('../helpers/routerFns');
 const { authenticateToken, verifyPostAuthor } = require('../helpers/auth');
 const {
   insertPostIntoTable,
@@ -14,15 +14,19 @@ const { handleSuccess } = require('../helpers/errorHandler');
 router.get('/posts', async (req, res, next) => {
   try {
     let posts = await handleDBQuery('SELECT * FROM blog_posts');
-    usernames = await getUsernamesByUserId();
+    const usernames = await getAllUserNames();
 
+    // Assign username to each post
     posts.forEach((post) => {
       post.username = usernames[post.userId] || 'Unknown user';
+      post.datePosted = post.dateCreated;
     });
+
+    console.log(posts);
 
     res.json(posts);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching posts', error);
     next(error);
   }
 });
@@ -38,16 +42,23 @@ router.get('/posts/:id', async (req, res, next) => {
     );
     res.json(post);
   } catch (error) {
+    console.error('Error fetching posts', error);
     next(error);
   }
 });
 
 router.post('/posts', authenticateToken, async (req, res, next) => {
   try {
-    console.log(req.user);
-    const data = { ...req.body, userId: req.user.id };
-    const updatedID = await insertPostIntoTable(data);
-    return handleSuccess(res, 'Post created successfully', { id: updatedID });
+    const { title, content, datePosted } = req.body;
+    const data = {
+      userId: req.user.id,
+      title,
+      content,
+      dateCreated: datePosted,
+    };
+    await insertPostIntoTable(data);
+
+    return handleSuccess(res, 'Post created successfully');
   } catch (error) {
     console.error('Error creating post', error);
     next(error);

@@ -68,11 +68,15 @@ The project is modularized into the follwing folders:
 | Database | db.js, database.db                            | Contains the SQLite database setup and initializations. Responsible for creating a new database if absent.               |
 | Helpers  | auth.js, errorHandler.js, routerFns.js        | Comprises helper functions and middleware for tasks like authentication, error handling, and database query abstraction. |
 
+---
+
 This modular approach allows for clear separation of concerns, making the codebase more manageable and easier to understand. Each module serves a distinct purpose, facilitating easier updates and potential future expansions.
+
+Say something abut express Router and how endpoint paths could have been improved if we were allowed to work with the frontend code.
 
 ### 3.2. Endpoint design
 
-The API endpoints are designed following RESTful principles, ensuring intuitive and predictable URL patterns:
+The API endpoints are designed following RESTful principles. These endpoints provide a comprehensive interface for CRUD operations (Create, Read, Update, Delete) that interact with the frontend.
 
 | Endpoint   | HTTP Method | Description                           | Used in        |
 | ---------- | ----------- | ------------------------------------- | -------------- |
@@ -85,7 +89,37 @@ The API endpoints are designed following RESTful principles, ensuring intuitive 
 | /login     | POST        | Authenticates a user.                 | loginRoutes.js |
 | /logout    | POST        | Logs out a user.                      | loginRoutes.js |
 
-These endpoints provide a comprehensive interface for CRUD operations (Create, Read, Update, Delete) that interact with the frontend. The RESTful design ensures that each endpoint performs a specific task, enhancing the API's usability and maintainability.
+---
+
+**Route handler patterns**
+
+My goal was to make sure each endpoint handler followed a consistent, declarative pattern. I did my best to achieve this by using utility functions and middleware to handle repetitive tasks.
+
+All endpoint handlers are written in async and uses the try/catch codeblock to catch and handle errors. Exception errors are caught and formatted by a global error handling middleware <= link. This ensures concise and readable error handling across the codebase.
+
+---
+
+**Example route handler:**
+
+```javascript
+router.post('/posts', authenticateToken, async (req, res, next) => {
+  try {
+    const { title, content, datePosted } = req.body;
+    const data = {
+      userId: req.user.id,
+      title,
+      content,
+      dateCreated: datePosted,
+    };
+    await insertPostIntoTable(data);
+
+    return handleSuccess(res, 'Post created successfully'); 
+  } catch (error) {
+    console.error('Error creating post', error);
+    next(error);
+  }
+});
+```
 
 ### 3.3. Database interaction
 
@@ -98,18 +132,21 @@ Database interactions are handled using SQL queries.
 | Delete Post   | Removes a post from the database. | SQL DELETE operation in postTable.js |
 | Register User | Adds a new user to the database.  | SQL INSERT operation in userTable.js |
 
-Database interactions are handled using SQL queries, providing a robust and efficient way to perform CRUD operations:
+Database interactions are handled using SQL queries, providing a robust and efficient way to perform CRUD operations.
+
+**Note on table property naming**
 
 ### 3.4. Helper functions
 
 Various helper functions and middleware are used to streamline the application:
 
-| Function           | Description                                                | Scope/Used in           |
+| Function           | Description                                                | Scope/Used in     |
 | ------------------ | ---------------------------------------------------------- | ----------------- |
 | bcryptHashPassword | Hashes user passwords for secure storage.                  | User registration |
 | authenticateToken  | Middleware for token verification and user authentication. | Protected routes  |
 | errorHandler       | Centralized error handling across the application.         | Global middleware |
 | handleDBQuery      | Generic function for database querying.                    | Models            |
+| getAllUserNames    | Adds username to json requested by client.                 | GET /posts        |
 
 Include code snippets for the functions and their usage, explain your understanding of the theory behind them and the pros and cons of using them in a small scale project like this, and the value of practicing these method in perparation for future projects.
 

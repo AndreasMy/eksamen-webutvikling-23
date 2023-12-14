@@ -1,4 +1,4 @@
-const express = require('express');
+
 const db = require('../database/db');
 
 const handleDBQuery = (sql, params, singleItem = false) => {
@@ -23,11 +23,12 @@ const handleDBQuery = (sql, params, singleItem = false) => {
   });
 };
 
-const getUsernamesByUserId = async (next) => {
+
+const getAllUserNames = async (next) => {
   try {
     users = await handleDBQuery('SELECT * FROM registered_users');
     const usernameMap = {};
-    
+
     users.forEach((user) => {
       usernameMap[user.id] = user.username;
     });
@@ -41,5 +42,5 @@ const getUsernamesByUserId = async (next) => {
 
 module.exports = {
   handleDBQuery,
-  getUsernamesByUserId,
+  getAllUserNames,
 };

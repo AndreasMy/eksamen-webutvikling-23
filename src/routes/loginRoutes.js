@@ -8,9 +8,10 @@ const {
   setUser,
 } = require('../helpers/auth');
 const { sendErrorResponse, handleSuccess } = require('../helpers/errorHandler');
+
 router.use(express.json());
 
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
     const user = await handleDBQuery(
@@ -18,7 +19,7 @@ router.post('/login', async (req, res) => {
       [username],
       true
     );
-    
+
     const userNotFound = !user || user.length === 0;
     const matchedPassword = userNotFound
       ? false
