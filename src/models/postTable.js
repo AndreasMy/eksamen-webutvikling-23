@@ -25,7 +25,11 @@ const insertPostIntoTable = (post) => {
       query,
       [post.userId, post.title, post.content, post.dateCreated],
       function (err) {
-        err ? reject(err) : resolve(this.lastId);
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(this.lastID); 
       }
     );
   });

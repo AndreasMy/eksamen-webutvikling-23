@@ -15,16 +15,18 @@ router.get('/posts', async (req, res, next) => {
   try {
     let posts = await handleDBQuery('SELECT * FROM blog_posts');
     const usernames = await getAllUserNames();
+    console.log('Output from db', posts);
 
     // Assign username to each post
-    posts.forEach((post) => {
-      post.username = usernames[post.userId] || 'Unknown user';
-      post.datePosted = post.dateCreated;
-    });
+    const updatedPosts = posts.map(({ dateCreated, ...post }) => ({
+      ...post,
+      username: usernames[post.userId] || 'Unknown user',
+      datePosted: dateCreated, // Only include 'datePosted' in the response
+    }));
 
-    console.log(posts);
+    console.log('Output to frontend: ', updatedPosts);
 
-    res.json(posts);
+    res.json(updatedPosts);
   } catch (error) {
     console.error('Error fetching posts', error);
     next(error);
@@ -51,14 +53,16 @@ router.post('/posts', authenticateToken, async (req, res, next) => {
   try {
     const { title, content, datePosted } = req.body;
     const data = {
+
       userId: req.user.id,
       title,
       content,
       dateCreated: datePosted,
     };
-    await insertPostIntoTable(data);
+    const newPostId = await insertPostIntoTable(data);
+    console.log('new post id:', newPostId);
 
-    return handleSuccess(res, 'Post created successfully');
+    return handleSuccess(res, 'Post created successfully', { id: newPostId });
   } catch (error) {
     console.error('Error creating post', error);
     next(error);
@@ -72,12 +76,17 @@ router.put(
   verifyPostAuthor,
   async (req, res, next) => {
     try {
+      const { title, content, datePosted } = req.body;
       const data = {
-        ...req.body,
         id: req.params.id,
-        username: req.user.username,
+        userId: req.user.id,
+        title,
+        content,
+        dateCreated: datePosted,
       };
       const updatedData = await updatePostIntoTable(data);
+
+      console.log('updated data: ', updatedData); // displays the updated data
       return handleSuccess(res, 'Post updated successfully', {
         data: updatedData,
       });

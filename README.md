@@ -89,7 +89,7 @@ The API endpoints are designed following RESTful principles. These endpoints pro
 | /login     | POST        | Authenticates a user.                 | loginRoutes.js |
 | /logout    | POST        | Logs out a user.                      | loginRoutes.js |
 
----
+
 
 **Route handler patterns**
 
@@ -97,7 +97,6 @@ My goal was to make sure each endpoint handler followed a consistent, declarativ
 
 All endpoint handlers are written in async and uses the try/catch codeblock to catch and handle errors. Exception errors are caught and formatted by a global error handling middleware <= link. This ensures concise and readable error handling across the codebase.
 
----
 
 **Example route handler:**
 
@@ -123,7 +122,7 @@ router.post('/posts', authenticateToken, async (req, res, next) => {
 
 ### 3.3. Database interaction
 
-Database interactions are handled using SQL queries.
+Database interactions are handled using SQL queries, providing a robust and efficient way to perform CRUD operations.
 
 | Operation     | Description                       | Implementation Details               |
 | ------------- | --------------------------------- | ------------------------------------ |
@@ -132,9 +131,11 @@ Database interactions are handled using SQL queries.
 | Delete Post   | Removes a post from the database. | SQL DELETE operation in postTable.js |
 | Register User | Adds a new user to the database.  | SQL INSERT operation in userTable.js |
 
-Database interactions are handled using SQL queries, providing a robust and efficient way to perform CRUD operations.
+
+
 
 **Note on table property naming**
+**Note on hard delete vs soft delete**
 
 ### 3.4. Helper functions
 
