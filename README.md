@@ -174,7 +174,7 @@ We were assigned to adhere to the following structure:
 
   ***
 
-To accommodate the client's requirement for including a username in the response of the GET /posts endpoint, the code matches posts.userId with user.id. A new 'username' property is added to every post before sending the response.
+To meet the client's requirement for including a username in the response of the GET /posts endpoint, the code matches posts.userId with user.id. A new 'username' property is added to every post before sending the response.
 
 **Example:**
 
@@ -221,23 +221,65 @@ router.get('/posts', async (req, res, next) => {
 ```
 
 **Note on using numeric id vs uuid**
-Initially, I used uuidv4 for both
-
-**Note on hard delete vs soft delete**
+Initially, I used uuidv4 for both database tables, but quickly realized that the front end code expected a numeric id. The post table therefore uses numeric IDs while the users table still use uuid.
 
 ### 3.4 Helper functions
 
 Various helper functions and middleware are used to streamline the application:
 
-| Function           | Description                                                | Scope/Used in     |
-| ------------------ | ---------------------------------------------------------- | ----------------- |
-| bcryptHashPassword | Hashes user passwords for secure storage.                  | User registration |
-| authenticateToken  | Middleware for token verification and user authentication. | Protected routes  |
-| errorHandler       | Centralized error handling across the application.         | Global middleware |
-| handleDBQuery      | Generic function for database querying.                    | Models            |
-| getAllUserNames    | Adds username to json requested by client.                 | GET /posts        |
+| Function        | Description                                | Scope/Used in |
+| --------------- | ------------------------------------------ | ------------- |
+| handleDBQuery   | Generic function for database querying.    | Models        |
+| getAllUserNames | Adds username to json requested by client. | GET /posts    |
 
-Include code snippets for the functions and their usage, explain your understanding of the theory behind them and the pros and cons of using them in a small scale project like this, and the value of practicing these method in perparation for future projects.
+**handleDBQuery:** 
+
+Serves as a centralized database query handler. It abstracts the intricacies of executing SQL queries, allowing other parts of the application to interact with the database without concerning themselves with the underlying database connection details. The use of promisesprovides cleaner error handling and improved flow control compared to traditional callback-based approaches.
+
+**Example:**
+
+```javascript
+// Centralized handler for all SELECT queries
+// singleItem defaults to false
+const handleDBQuery = (sql, params, singleItem = false) => {
+  return new Promise((resolve, reject) => {
+    const queryCallback = (err, data) => {
+      if (err) {
+        reject('Error reading from database');
+        return;
+      }
+      if (singleItem && !data) {
+        reject('Item not found');
+        return;
+      }
+      resolve(data);
+    };
+
+    if (singleItem) {
+      db.get(sql, params, queryCallback);
+    } else {
+      db.all(sql, params, queryCallback);
+    }
+  });
+};
+```
+
+**Usage:**
+
+```javascript
+// Selecting all posts
+const posts = await handleDBQuery('SELECT * FROM blog_posts');
+```
+
+```javascript
+// For selecting post by id
+// singleItem parameter is set to 'true',
+const selectPostById = await handleDBQuery(
+  'SELECT * FROM blog_posts WHERE id = ?',
+  [id],
+  true
+);
+```
 
 ### 3.5. Error handling
 
@@ -249,16 +291,183 @@ A centralized approach to error handling is adopted, ensuring uniformity and eas
 | sendErrorResponse | Utility for sending consistent error responses.         | Used in routes    |
 | handleResponse    | Utility for sending consistent OK responses.            | Used in routes    |
 
-Describe how the global middleware works, discuss the pros and cons of using utility functions for custom error and response messages.
+---
 
-### 3.6. Security Considerations
+**errorHandler**
+
+I tried to implement at centralized error handling approach, which streamlines error management by ensuring consistent handling and uniform response formats. It also aids in debugging by offering a single point for error tracking and logging. However, this method may sometimes limit granular control over error handling in different parts of the application, necessitating adjustments or bypassing the centralized system for specific scenarios.
+
+**Example:**
+
+```javascript
+// Global error handling middleware
+const errorHandler = (err, req, res, next) => {
+  if (res.headersSent) {
+    // If headers are already sent, delegate to the default Express error handler
+    return next(err);
+  }
+  res.status(err.status || 500).json({
+    // Sets the HTTP status code and sends a JSON response
+    error: {
+      message: err.message || 'An unexpected error occurred',
+      code: err.code || 'INTERNAL_SERVER_ERROR',
+    },
+  });
+};
+```
+
+I used these utility functions to limit code repetition and foster more readable code in the route handlers. the use of these utilities might be a bit excessive in the context of this assignment and I might have introduced some unnecessary complexity here.
+
+```javascript
+// Utility function to send a standardized error response
+const sendErrorResponse = (res, statusCode, message) => {
+  // Sends a JSON response with a status code and message
+  res.status(statusCode).json({ authenticated: false, message });
+};
+
+// Utility function to send a standardized success (OK) response
+const handleResponse = (res, statusCode, message, object) => {
+  res.status(statusCode).json({ message, object });
+};
+```
+
+### 3.6. Security Middleware & Helpers
+
+| Function              | Description                                                               | Scope/Used in       |
+| --------------------- | ------------------------------------------------------------------------- | ------------------- |
+| bcryptHashPassword    | Hashes user passwords for secure storage using bcrypt.                    | User registration   |
+| bcryptComparePassword | Compares a plaintext password with a hashed password to validate a user.  | User authentication |
+| authenticateToken     | Middleware for token verification and user authentication using JWT.      | Protected routes    |
+| signJwtToken          | Generates a JWT (JSON Web Token) for user authentication.                 | User login          |
+| setCookie             | Sets a cookie in the user's browser with the JWT for maintaining session. | After user login    |
+
+---
+
+**Brief:**
+
+The following functions provide a comprehensive system for user registration, authentication, and session management. Each plays a specific role in ensuring that user credentials are handled securely and that only authenticated users can access protected routes.
+
+**bcryptHashPassword:**
+
+This function is used during user registration to securely hash user passwords before storing them in the database. It uses bcrypt to generate a salt and hash the password, and then calls insertUserIntoDB to store the user's data, including the hashed password.
+
+**Example:**
+
+```javascript
+// Hashes a user's password for secure storage in the database
+const bcryptHashPassword = async (data) => {
+  const saltRounds = 10; // Number of rounds for generating the salt
+  const password = data.password;
+
+  return new Promise((resolve, reject) => {
+    bcrypt
+      .hash(password, saltRounds) // Generates a hashed password
+      .then((hash) => {
+        data.password = hash; // Replace the plaintext password with the hash
+        return insertUserIntoDB(data); // Inserts the user data into the database
+      })
+      .then((userID) => resolve(userID)) // Resolves with the new user's ID
+      .catch((err) => reject(err)); // In case of an error, reject the promise
+  });
+};
+```
+
+**bcryptComparePassword:**
+
+Used during user login, this function compares a provided plaintext password with the hashed password stored in the database. It returns true if the passwords match, otherwise false.
+
+```javascript
+// Compares a provided plaintext password with a hashed password in the database
+const bcryptComparePassword = async (password, user) => {
+  try {
+    const match = bcrypt.compare(password, user.password); // Compares the passwords
+    return match; // Returns true if passwords match, false otherwise
+  } catch (error) {
+    throw new Error('Error validating password'); // Throws an error if comparison fails
+  }
+};
+```
+
+---
+
+**authenticateToken:**
+
+As a middleware, this function checks for a JWT in the request headers, verifies it, and, if valid, allows the request to proceed. It's used to protect routes that require user authentication.
+
+**Example:**
+
+```javascript
+// Middleware for verifying JWT token in the request header
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization']; // Extracts the Authorization header
+  const token = authHeader && authHeader.split(' ')[1]; // Retrieves the token from the header
+
+  if (token == null) {
+    return sendErrorResponse(
+      res,
+      401,
+      'You must be logged in to perform this operation.'
+    ); // Sends an error response if no token is found
+  }
+
+  jwt.verify(token, secretKey, (err, user) => {
+    if (err) {
+      return sendErrorResponse(
+        res,
+        401,
+        'You must be logged in to perform this operation.'
+      ); // Sends an error response if token verification fails
+    }
+
+    req.user = user; // Attaches the user object to the request
+    next(); // Proceeds to the next middleware or route handler
+  });
+};
+```
+
+---
+
+**signJwtToken:**
+
+After a successful login, this function generates a JWT, which is then used for user authentication in subsequent requests. The JWT contains user-specific data like id and username.
+
+**Example:**
+
+```javascript
+// Generates a JWT for user authentication
+const signJwtToken = (user) => {
+  return (token = jwt.sign(
+    { id: user.id, username: user.username }, // User data payload
+    secretKey, // Secret key used to sign the token
+    { expiresIn: '1h' } // Token expiration time
+  ));
+};
+```
+
+**setCookie:**
+
+This function sets a cookie in the user's browser containing the JWT. This is useful for maintaining the user's session and authenticating subsequent requests.
+
+```javascript
+// Sets a cookie in the user's browser with the JWT
+const setCookie = (res, token) => {
+  res.cookie('token', token, {
+    maxAge: 900000, // Cookie expiration time in milliseconds
+    httpOnly: false, // Allows JavaScript access to the cookie
+    secure: false, // For HTTPS set to true, false for HTTP
+    sameSite: 'lax', // Lax same-site policy for the cookie
+  });
+};
+```
+
+---
 
 ## 4 Academic Reflection
 
 ### Evaluation of Own Work
 
-_Self-reflection on the strengths and weaknesses of the project._
+I opted for a modular approact and aimed to abstract away code that would clutter the route handlers. The goal was to learn more about implementing best practices in building a basic, but expandable REST API with node, express and sqlite. The experience has significantly elevated my understanding of backend development and will serve as a solid foundation for future projects.
 
 ### Guidance and Adjustment
 
-_Reflection on how the work could have been improved with guidance._
+I struggled with premature optimization and abstracting of code, often opting for generalizing operations before I had completely solved the problem. This lead to unnecessary time spent on debugging, often struggling with the added complexities of the abstracted code. In the future, I'll emphasize problem solving before abstracting and make sure that I implement generalized solutions only if I have adequate experience and understanding of how my code operates and is executed.

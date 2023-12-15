@@ -19,7 +19,7 @@ router.get('/posts', async (req, res, next) => {
     const postsWithUsernames = await getPostsAndUsernames();
     res.json(postsWithUsernames);
   } catch (error) {
-    console.error('Error fetching posts', error);
+    console.error('Error selecting posts', error);
     next(error);
   }
 });
@@ -35,7 +35,7 @@ router.get('/posts/:id', async (req, res, next) => {
     );
     res.json(post);
   } catch (error) {
-    console.error('Error fetching posts', error);
+    console.error('Error selecting post', error);
     next(error);
   }
 });
