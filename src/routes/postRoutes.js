@@ -1,26 +1,23 @@
 const express = require('express');
 const router = express.Router();
 
-const { handleDBQuery, getAllUserNames } = require('../helpers/routerFns');
+const {
+  handleDBQuery,
+  getPostsAndUsernames,
+} = require('../helpers/routerFns');
 const { authenticateToken, verifyPostAuthor } = require('../helpers/auth');
 const {
   insertPostIntoTable,
   updatePostIntoTable,
   deletePostFromTable,
 } = require('../models/postTable');
-const { handleSuccess } = require('../helpers/errorHandler');
+const { handleResponse } = require('../helpers/errorHandler');
 
 // Get all posts
 router.get('/posts', async (req, res, next) => {
   try {
-    let posts = await handleDBQuery('SELECT * FROM blog_posts');
-    const usernames = await getAllUserNames();
-    // Assign username to each post
-    posts.forEach((post) => {
-      post.username = usernames[post.userId] || 'Unknown user';
-    });
-
-    res.json(posts);
+    const postsWithUsernames = await getPostsAndUsernames();
+    res.json(postsWithUsernames);
   } catch (error) {
     console.error('Error fetching posts', error);
     next(error);
@@ -47,7 +44,7 @@ router.post('/posts', authenticateToken, async (req, res, next) => {
   try {
     const data = { ...req.body, userId: req.user.id };
     await insertPostIntoTable(data);
-    return handleSuccess(res, 'Post created successfully');
+    return handleResponse(res, 200, 'Post created successfully');
   } catch (error) {
     console.error('Error creating post', error);
     next(error);
@@ -67,7 +64,7 @@ router.put(
         username: req.user.username,
       };
       const updatedData = await updatePostIntoTable(data);
-      return handleSuccess(res, 'Post updated successfully', {
+      return handleResponse(res, 200, 'Post updated successfully', {
         data: updatedData,
       });
     } catch (error) {
@@ -86,7 +83,7 @@ router.delete(
     try {
       const id = req.params.id;
       const dataToDelete = await deletePostFromTable(id);
-      return handleSuccess(res, 'Post deleted successfully', {
+      return handleResponse(res, 200, 'Post deleted successfully', {
         id: dataToDelete,
       });
     } catch (error) {

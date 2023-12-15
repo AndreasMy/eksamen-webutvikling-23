@@ -16,12 +16,12 @@ const sendErrorResponse = (res, statusCode, message) => {
   res.status(statusCode).json({ authenticated: false, message });
 };
 
-const handleSuccess = (res, message, object) => {
-  res.status(200).json({ message, object });
+const handleResponse = (res, statusCode, message, object) => {
+  res.status(statusCode).json({ message, object });
 };
 
 module.exports = {
   sendErrorResponse,
   errorHandler,
-  handleSuccess,
+  handleResponse,
 };

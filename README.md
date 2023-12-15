@@ -106,7 +106,7 @@ router.post('/posts', authenticateToken, async (req, res, next) => {
     // req.user.id has been initialized in authenitcateToken
     const data = { ...req.body, userId: req.user.id };
     await insertPostIntoTable(data);
-    return handleSuccess(res, 'Post created successfully');
+    return handleResponse(res, 200, 'Post created successfully');
   } catch (error) {
     console.error('Error creating post', error);
     // pass exception errors to errorHandler middleware
@@ -131,6 +131,35 @@ Database interactions are handled using SQL queries, providing a robust and effi
 
 ---
 
+**Database queries and Promises**
+
+All database query functions are written to return a promise. Promises are used to manage situations where the program must wait for the outcome of an operation.
+
+The promise will be in pending mode until the execution of the query. Once the query execution completes, the Promise resolves with the affected data or a success confirmation if successful. In case of an error, the Promise is rejected and returns an error object. This error object is then handled in the route handler, and any uncaught exception errors are caught in the 'catch' block and passed to the errorHandler middleware for centralized error management.
+
+Promises, particularly when used with async/await syntax, enhance readability and simplify error handling, providing a significant advantage over traditional callback-based approaches.
+
+**Example:**
+
+```javascript
+const updatePostIntoTable = (post) => {
+  return new Promise((resolve, reject) => {
+    const query = `UPDATE blog_posts 
+                   SET title = ?, content = ?, datePosted = ?
+                   WHERE id = ?`;
+    db.run(
+      query,
+      [post.title, post.content, post.datePosted, post.id],
+      function (error) {
+        // In case of an error, reject the promise
+        // On successful query execution, resolve the promise
+        error ? reject(error) : resolve(post);
+      }
+    );
+  });
+};
+```
+
 **Database Requirements**
 
 We were assigned to adhere to the following structure:
@@ -145,33 +174,54 @@ We were assigned to adhere to the following structure:
 
   ***
 
-Since the client code is requesting key/val pair username to be included in its GET /posts endpoint, I'm opting to match posts.userId with user.id and add the new 'username' property to every post before sending the response object.
+To accommodate the client's requirement for including a username in the response of the GET /posts endpoint, the code matches posts.userId with user.id. A new 'username' property is added to every post before sending the response.
 
 **Example:**
 
 ```javascript
-// Example: Adding username to each post in GET /posts endpoint
-router.get('/posts', async (req, res, next) => {
+// Example: Adding username to each post to use in the GET /posts endpoint
+// Returns a single object containing id and username as a key/val pair
+const getPostsAndUsernames = async (next) => {
   try {
-    let posts = await handleDBQuery('SELECT * FROM blog_posts');
+    // Database queries are chained asynchronously as promises
+    const posts = await handleDBQuery('SELECT * FROM blog_posts');
+    const users = await handleDBQuery('SELECT * FROM registered_users');
 
-    // Returns a single object containing id and username as a key/val pair
-    const usernames = await getAllUserNames();
-
-    // Adds new property 'username' to every 'post' object
-    posts.forEach((post) => {
-      post.username = usernames[post.userId] || 'Unknown user';
+    const usernameMap = {};
+    users.forEach((user) => {
+      usernameMap[user.id] = user.username;
     });
 
-    res.json(posts);
+    // Adds new property 'username' to every 'post' object
+    const postsWithUsernames = posts.map((post) => ({
+      ...post,
+      username: usernameMap[post.userId] || 'Unknown user',
+    }));
+
+    return postsWithUsernames;
+  } catch (error) {
+    console.error('Error in getPostsAndUsernames:', error);
+    throw error; // Rethrow error for centralized handling
+  }
+};
+```
+
+**Usage in route handler:**
+
+```javascript
+router.get('/posts', async (req, res, next) => {
+  try {
+    const postsWithUsernames = await getPostsAndUsernames();
+    res.json(postsWithUsernames);
   } catch (error) {
     console.error('Error fetching posts', error);
-    next(error);
+    next(error); // Pass error to errorHandler middleware
   }
 });
 ```
 
 **Note on using numeric id vs uuid**
+Initially, I used uuidv4 for both
 
 **Note on hard delete vs soft delete**
 
@@ -197,7 +247,7 @@ A centralized approach to error handling is adopted, ensuring uniformity and eas
 | ----------------- | ------------------------------------------------------- | ----------------- |
 | errorHandler      | Middleware for catching and formatting error responses. | Global middleware |
 | sendErrorResponse | Utility for sending consistent error responses.         | Used in routes    |
-| handleSuccess     | Utility for sending consistent OK responses.            | Used in routes    |
+| handleResponse    | Utility for sending consistent OK responses.            | Used in routes    |
 
 Describe how the global middleware works, discuss the pros and cons of using utility functions for custom error and response messages.
 

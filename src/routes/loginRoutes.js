@@ -7,7 +7,7 @@ const {
   setCookie,
   setUser,
 } = require('../helpers/auth');
-const { sendErrorResponse, handleSuccess } = require('../helpers/errorHandler');
+const { sendErrorResponse, handleResponse } = require('../helpers/errorHandler');
 
 router.use(express.json());
 
@@ -32,7 +32,7 @@ router.post('/login', async (req, res, next) => {
     const token = signJwtToken(user);
     setCookie(res, token);
 
-    handleSuccess(res, 'Innlogging vellykket!', null);
+    handleResponse(res, 200, 'Innlogging vellykket!', null);
   } catch (error) {
     next(error);
   }

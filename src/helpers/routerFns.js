@@ -23,24 +23,30 @@ const handleDBQuery = (sql, params, singleItem = false) => {
   });
 };
 
-
-const getAllUserNames = async (next) => {
+const getPostsAndUsernames = async (next) => {
   try {
-    users = await handleDBQuery('SELECT * FROM registered_users');
-    const usernameMap = {};
+    const posts = await handleDBQuery('SELECT * FROM blog_posts');
+    const users = await handleDBQuery('SELECT * FROM registered_users');
 
+    const usernameMap = {};
     users.forEach((user) => {
       usernameMap[user.id] = user.username;
     });
 
-    return usernameMap;
+    // Assign username to each post
+    const postsWithUsernames = posts.map((post) => ({
+      ...post,
+      username: usernameMap[post.userId] || 'Unknown user',
+    }));
+
+    return postsWithUsernames;
   } catch (error) {
-    console.error('Error fetching username:', error);
-    next(error); // Re-throw the error so it can be handled by the caller
+    console.error('Error in getPostsAndUsernames:', error);
+    throw error; 
   }
 };
 
 module.exports = {
+  getPostsAndUsernames,
   handleDBQuery,
-  getAllUserNames,
 };
