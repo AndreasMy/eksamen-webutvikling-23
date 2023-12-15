@@ -20,7 +20,7 @@ The assignment was initially provided with a single page template, ready with pr
 
 ### 1.3. Note on .env usage
 
-Explain why .env is included in the git repository, the security risk of doing so and best practices for handling .env in production.
+In this project, a .env file is included in the Git repository. This decision was made primarily for educational and demonstration purposes, to provide a clear example of how environment variables can be used to configure an application. However, it's important to note that including .env files in version control, especially public repositories, can pose significant security risks.
 
 ### 1.3. Built with
 
