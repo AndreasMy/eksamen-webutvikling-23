@@ -15,7 +15,6 @@ router.get('/posts', async (req, res, next) => {
   try {
     let posts = await handleDBQuery('SELECT * FROM blog_posts');
     const usernames = await getAllUserNames();
-
     // Assign username to each post
     posts.forEach((post) => {
       post.username = usernames[post.userId] || 'Unknown user';
@@ -47,10 +46,8 @@ router.get('/posts/:id', async (req, res, next) => {
 router.post('/posts', authenticateToken, async (req, res, next) => {
   try {
     const data = { ...req.body, userId: req.user.id };
-    const updatedID = await insertPostIntoTable(data);
-    console.log('What is the value here? ', updatedID) // undefined
-
-    return handleSuccess(res, 'Post created successfully', { id: updatedID }); 
+    await insertPostIntoTable(data);
+    return handleSuccess(res, 'Post created successfully');
   } catch (error) {
     console.error('Error creating post', error);
     next(error);

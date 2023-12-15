@@ -9,9 +9,9 @@ db.serialize(() => {
         content TEXT,
         datePosted TEXT
     )`,
-    function (err) {
-      err
-        ? console.error(err.message)
+    function (error) {
+      error
+        ? console.erroror(error.message)
         : console.log('Table created or already exists');
     }
   );
@@ -24,9 +24,9 @@ const insertPostIntoTable = (post) => {
     db.run(
       query,
       [post.userId, post.title, post.content, post.datePosted],
-      function (err) {
-        if (err) {
-          reject(err);
+      function (error) {
+        if (error) {
+          reject(error);
           return;
         }
         resolve(this.lastID); 
@@ -43,8 +43,8 @@ const updatePostIntoTable = (post) => {
     db.run(
       query,
       [post.title, post.content, post.datePosted, post.id],
-      function (err) {
-        err ? reject(err) : resolve(post);
+      function (error) {
+        error ? reject(error) : resolve(post);
       }
     );
   });
@@ -53,8 +53,8 @@ const updatePostIntoTable = (post) => {
 const deletePostFromTable = (id) => {
   return new Promise((resolve, reject) => {
     const query = `DELETE FROM blog_posts WHERE id = ?`;
-    db.run(query, [id], function (err) {
-      err ? reject(err) : resolve(id);
+    db.run(query, [id], function (error) {
+      error ? reject(error) : resolve(id);
     });
   });
 };

@@ -10,9 +10,9 @@ db.serialize(() => {
             email TEXT,
             dateCreated TEXT
         )`,
-    function (err) {
-      err
-        ? console.error(err.message)
+    function (error) {
+      error
+        ? console.error(error.message)
         : console.log('Table created or already exists');
     }
   );
@@ -26,8 +26,8 @@ const insertUserIntoDB = (user) => {
     db.run(
       query,
       [id, user.username, user.password, user.email, user.dateCreated],
-      function (err) {
-        err ? reject(err) : resolve(id);
+      function (error) {
+        error ? reject(error) : resolve(id);
       }
     );
   });

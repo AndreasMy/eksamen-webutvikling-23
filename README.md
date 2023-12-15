@@ -2,11 +2,11 @@
 
 ## Table of contents
 
-- [1. Introduction](#Introduction)
-- [2. Installation](#Installation)
-- [3. Process and Development](#process-and-development)
-- [4. Database](#database)
-- [5. Academic Reflection](#academic-reflection)
+- [1. Introduction](#1Introduction)
+- [2. Installation](#2Installation)
+- [3 Process and Development](#3-process-and-development)
+- [4. Database](#4database)
+- [5. Academic Reflection](#5academic-reflection)
 
 ## 1. Introduction
 
@@ -75,6 +75,7 @@ This modular approach allows for clear separation of concerns, making the codeba
 Say something abut express Router and how endpoint paths could have been improved if we were allowed to work with the frontend code.
 
 ---
+
 ### 3.2. Endpoint design
 
 The API endpoints are designed following RESTful principles. These endpoints provide a comprehensive interface for CRUD operations (Create, Read, Update, Delete) that interact with the frontend.
@@ -94,40 +95,87 @@ The API endpoints are designed following RESTful principles. These endpoints pro
 
 My goal was to make sure each endpoint handler followed a consistent, declarative pattern. I did my best to achieve this by using utility functions and middleware to handle repetitive tasks.
 
-All endpoint handlers are written in async and uses the try/catch codeblock to catch and handle errors. Exception errors are caught and formatted by a global error handling middleware <= link. This ensures concise and readable error handling across the codebase.
+All endpoint handlers are written in async and uses the try/catch codeblock to catch and handle errors. Exception errors are caught and formatted by a global [error handling](#35-error-handling) middleware. This ensures concise and readable error handling across the codebase.
 
 **Example route handler:**
 
 ```javascript
 router.post('/posts', authenticateToken, async (req, res, next) => {
   try {
+    // ...req.body represents the parsed json sent from the client
+    // req.user.id has been initialized in authenitcateToken
     const data = { ...req.body, userId: req.user.id };
-    const updatedID = await insertPostIntoTable(data);
-
-    return handleSuccess(res, 'Post created successfully', { id: updatedID });
+    await insertPostIntoTable(data);
+    return handleSuccess(res, 'Post created successfully');
   } catch (error) {
     console.error('Error creating post', error);
+    // pass exception errors to errorHandler middleware
     next(error);
   }
 });
 ```
 
-### 3.3. Database interaction
+---
+
+### 3.3 Database interaction
 
 Database interactions are handled using SQL queries, providing a robust and efficient way to perform CRUD operations.
 
-| Operation     | Description                       | Implementation Details               |
-| ------------- | --------------------------------- | ------------------------------------ |
-| Create Post   | Adds a new post to the database.  | SQL INSERT operation in postTable.js |
-| Update Post   | Modifies an existing post.        | SQL UPDATE operation in postTable.js |
-| Delete Post   | Removes a post from the database. | SQL DELETE operation in postTable.js |
-| Register User | Adds a new user to the database.  | SQL INSERT operation in userTable.js |
+| Operation     | Description                               | Implementation Details                       |
+| ------------- | ----------------------------------------- | -------------------------------------------- |
+| Create Post   | Adds a new post to the database.          | SQL INSERT operation in postTable.js         |
+| Update Post   | Modifies an existing post.                | SQL UPDATE operation in postTable.js         |
+| Delete Post   | Removes a post from the database.         | SQL DELETE operation in postTable.js         |
+| Read Content  | Reads assigned content from the database. | SQL SELECT operation as generalized function |
+| Register User | Adds a new user to the database.          | SQL INSERT operation in userTable.js         |
+
+---
+
+**Database Requirements**
+
+We were assigned to adhere to the following structure:
+
+- **Users Table** should contain:
+
+  > id, username, password, email and dateCreated.
+
+- **Posts Table** should contain:
+
+  > id, userId, title, content and datePosted.
+
+  ***
+
+Since the client code is requesting key/val pair username to be included in its GET /posts endpoint, I'm opting to match posts.userId with user.id and add the new 'username' property to every post before sending the response object.
+
+**Example:**
+
+```javascript
+// Example: Adding username to each post in GET /posts endpoint
+router.get('/posts', async (req, res, next) => {
+  try {
+    let posts = await handleDBQuery('SELECT * FROM blog_posts');
+
+    // Returns a single object containing id and username as a key/val pair
+    const usernames = await getAllUserNames();
+
+    // Adds new property 'username' to every 'post' object
+    posts.forEach((post) => {
+      post.username = usernames[post.userId] || 'Unknown user';
+    });
+
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching posts', error);
+    next(error);
+  }
+});
+```
 
 **Note on using numeric id vs uuid**
 
 **Note on hard delete vs soft delete**
 
-### 3.4. Helper functions
+### 3.4 Helper functions
 
 Various helper functions and middleware are used to streamline the application:
 
