@@ -54,8 +54,6 @@ npm run start
 
 ## 3 Process and Development
 
-_Describe the key points of the project_
-
 ### 3.1. Module structure
 
 The project adopts a modular architecture, dividing the codebase into logical sections for ease of maintenance and scalability:
@@ -72,7 +70,6 @@ The project is modularized into the follwing folders:
 
 This modular approach allows for clear separation of concerns, making the codebase more manageable and easier to understand. Each module serves a distinct purpose, facilitating easier updates and potential future expansions.
 
-Say something abut express Router and how endpoint paths could have been improved if we were allowed to work with the frontend code.
 
 ---
 
